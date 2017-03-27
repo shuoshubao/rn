@@ -1,151 +1,58 @@
-var React = require('react');
-var ReactNative = require('react-native');
-var {
-  DatePickerIOS,
-  StyleSheet,
+import React, {Component} from 'react'
+import {
+  AppRegistry,
   Text,
-  TextInput,
+  ListView,
   View,
-  AppRegistry
-} = ReactNative;
+  StyleSheet
+} from 'react-native'
 
-class DatePickerExample extends React.Component {
-  static defaultProps = {
-    date: new Date(),
-    timeZoneOffsetInHours: (-1) * (new Date()).getTimezoneOffset() / 60,
-  };
 
-  state = {
-    date: this.props.date,
-    timeZoneOffsetInHours: this.props.timeZoneOffsetInHours,
-  };
+const ds = new ListView.DataSource({
+  rowHasChanged: (r1, r2) => r1 !== r2
+})
 
-  onDateChange = (date) => {
-    this.setState({date: date});
-  };
+class rn extends Component {
+  constructor(props) {
+    super(props)
 
-  onTimezoneChange = (event) => {
-    var offset = parseInt(event.nativeEvent.text, 10);
-    if (isNaN(offset)) {
-      return;
+    this.state = {
+      dataSource: ds.cloneWithRows([])
     }
-    this.setState({timeZoneOffsetInHours: offset});
-  };
-
+  }
+  componentDidMount() {
+    fetch('https://facebook.github.io/react-native/movies.json')
+    .then(rs => rs.json())
+    .then(rs => {
+      this.setState({
+        dataSource: ds.cloneWithRows([...rs.movies, ...rs.movies, ...rs.movies])
+      })
+    })
+  }
   render() {
-    // Ideally, the timezone input would be a picker rather than a
-    // text input, but we don't have any pickers yet :(
     return (
-      <View>
-        <WithLabel label="Value:">
-          <Text>{
-            this.state.date.toLocaleDateString() +
-            ' ' +
-            this.state.date.toLocaleTimeString()
-          }</Text>
-        </WithLabel>
-        <WithLabel label="Timezone:">
-          <TextInput
-            onChange={this.onTimezoneChange}
-            style={styles.textinput}
-            value={this.state.timeZoneOffsetInHours.toString()}
-          />
-          <Text> hours from UTC</Text>
-        </WithLabel>
-        <Heading label="Date + time picker" />
-        <DatePickerIOS
-          date={this.state.date}
-          mode="datetime"
-          timeZoneOffsetInMinutes={this.state.timeZoneOffsetInHours * 60}
-          onDateChange={this.onDateChange}
-        />
-        <Heading label="Date picker" />
-        <DatePickerIOS
-          date={this.state.date}
-          mode="date"
-          timeZoneOffsetInMinutes={this.state.timeZoneOffsetInHours * 60}
-          onDateChange={this.onDateChange}
-        />
-        <Heading label="Time picker, 10-minute interval" />
-        <DatePickerIOS
-          date={this.state.date}
-          mode="time"
-          timeZoneOffsetInMinutes={this.state.timeZoneOffsetInHours * 60}
-          onDateChange={this.onDateChange}
-          minuteInterval={10}
-        />
-      </View>
-    );
+      <ListView
+        dataSource={this.state.dataSource}
+        renderRow={item => (
+          <View style={styles.wrap}>
+            <Text style={styles.item}>{`标题: ${item.title}`}</Text>
+            <Text style={styles.item}>{`${item.releaseYear}年`}</Text>
+          </View>
+        )}
+      />
+    )
   }
 }
 
-class WithLabel extends React.Component {
-  render() {
-    return (
-      <View style={styles.labelContainer}>
-        <View style={styles.labelView}>
-          <Text style={styles.label}>
-            {this.props.label}
-          </Text>
-        </View>
-        {this.props.children}
-      </View>
-    );
-  }
-}
-
-class Heading extends React.Component {
-  render() {
-    return (
-      <View style={styles.headingContainer}>
-        <Text style={styles.heading}>
-          {this.props.label}
-        </Text>
-      </View>
-    );
-  }
-}
-
-exports.displayName = (undefined: ?string);
-exports.title = '<DatePickerIOS>';
-exports.description = 'Select dates and times using the native UIDatePicker.';
-exports.examples = [
-{
-  title: '<DatePickerIOS>',
-  render: function(): ReactElement<any> {
-    return <DatePickerExample />;
-  },
-}];
-
-var styles = StyleSheet.create({
-  textinput: {
-    height: 26,
-    width: 50,
-    borderWidth: 0.5,
-    borderColor: '#0f0f0f',
-    padding: 4,
-    fontSize: 13,
-  },
-  labelContainer: {
+const styles = StyleSheet.create({
+  wrap: {
+    flex: 1,
     flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 2,
+    justifyContent: 'space-between'
   },
-  labelView: {
-    marginRight: 10,
-    paddingVertical: 2,
-  },
-  label: {
-    fontWeight: '500',
-  },
-  headingContainer: {
-    padding: 4,
-    backgroundColor: '#f6f7f8',
-  },
-  heading: {
-    fontWeight: '500',
-    fontSize: 14,
-  },
-});
+  item: {
+    lineHeight: 30
+  }
+})
 
-AppRegistry.registerComponent('rn', () => DatePickerExample);
+AppRegistry.registerComponent('rn', () => rn)
