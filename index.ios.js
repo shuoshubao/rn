@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
   wrap: {
     flex: 1,
     flexDirection: 'row',
-    justifyContent: 'space-between'
+    justifyContent: 'center'
   },
   item: {
     lineHeight: 30
